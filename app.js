@@ -15,7 +15,7 @@ let activeBook = null;
 let activeCategory = "";
 
 async function loadBooks() {
-  const response = await fetch("book-index.json");
+  const response = await fetch("book-index.json", { cache: "no-store" });
   if (!response.ok) throw new Error("无法读取书目数据");
   const data = await response.json();
   books = (data.books || []).filter(book => Number(book.chapterCount) > 0);
@@ -84,7 +84,7 @@ function renderBooks(items) {
 }
 
 async function openBook(book) {
-  const response = await fetch(`books/${encodeURIComponent(book.id)}/chapters.json`);
+  const response = await fetch(`books/${encodeURIComponent(book.id)}/chapters.json`, { cache: "no-store" });
   if (!response.ok) return;
   const data = await response.json();
   activeBook = book;
