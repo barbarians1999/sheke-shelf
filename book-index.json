@@ -135,6 +135,38 @@
       "category": "中国哲学史",
       "stateLabel": "文字版 · 15 节",
       "chapterCount": 15
+    },
+    {
+      "id": "class-struggle-in-contemporary-china",
+      "title": "中国新时代的阶级斗争",
+      "author": "本书编写组",
+      "category": "阶级分析与社会结构",
+      "stateLabel": "文字版 · 80 节",
+      "chapterCount": 80
+    },
+    {
+      "id": "korean-labor-rose-on-barbed-wire",
+      "title": "铁丝网上的蔷薇——八位韩国工运妇女的故事",
+      "author": "朴敏那",
+      "category": "社会学与劳动研究",
+      "stateLabel": "文字版 · 9 节",
+      "chapterCount": 9
+    },
+    {
+      "id": "life-of-klim-samgin",
+      "title": "克里·萨木金的一生",
+      "author": "马克西姆·高尔基",
+      "category": "俄国文学",
+      "stateLabel": "文字版 · 97 节",
+      "chapterCount": 97
+    },
+    {
+      "id": "gorky-autobiography-trilogy",
+      "title": "高尔基自传三部曲",
+      "author": "马克西姆·高尔基",
+      "category": "俄国文学",
+      "stateLabel": "文字版 · 39 节",
+      "chapterCount": 39
     }
   ]
 }
