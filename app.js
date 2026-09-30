@@ -15,7 +15,7 @@ let activeBook = null;
 let activeCategory = "";
 
 async function loadBooks() {
-  const response = await fetch("book-index.json", { cache: "no-store" });
+  const response = await fetch("book-index.json?v=20260930", { cache: "no-store" });
   if (!response.ok) throw new Error("无法读取书目数据");
   const data = await response.json();
   books = (data.books || []).filter(book => Number(book.chapterCount) > 0);
