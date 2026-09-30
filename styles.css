@@ -38,8 +38,14 @@ button { color: inherit; }
 .tools input::placeholder { color: #778694; }
 .tools input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 32%, white); outline-offset: 2px; }
 #shelf-count { color: var(--muted); font-size: .84rem; white-space: nowrap; }
-.shell { width: min(100% - 2.25rem, 78rem); margin: 0 auto; padding: clamp(2.1rem, 5vw, 4.8rem) 0 5rem; }
-.book-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 19rem)); gap: .85rem; }
+.shell { width: min(calc(100% - 4rem), 112rem); margin: 0 auto; padding: clamp(1.6rem, 3vw, 3.2rem) 0 5rem; }
+.shelf-controls { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+.category-label { flex: 0 0 auto; padding: .55rem 0; color: var(--muted); font-size: .88rem; font-weight: 600; }
+.category-filters { min-width: 0; display: flex; flex-wrap: wrap; gap: .45rem; }
+.category-filter { min-height: 2.35rem; border: 1px solid transparent; border-radius: 999px; padding: .4rem .8rem; background: transparent; color: var(--muted); cursor: pointer; font-size: .9rem; white-space: nowrap; transition: background-color .16s ease, color .16s ease, border-color .16s ease; }
+.category-filter:hover { border-color: var(--line); color: var(--accent-strong); }
+.category-filter.is-active { border-color: var(--accent); background: var(--accent); color: #fff; }
+.book-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: 1rem; }
 .book-card { position: relative; min-height: 13.3rem; display: flex; flex-direction: column; align-items: flex-start; padding: clamp(1.15rem, 2.5vw, 1.8rem); border: 1px solid var(--line); border-left: 3px solid var(--accent); background: var(--surface-raised); transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
 .book-card:hover { border-color: #9caec1; border-left-color: var(--accent); box-shadow: 0 .65rem 1.6rem rgb(29 52 77 / .08); transform: translateY(-2px); }
 .book-category { margin: 0 0 .85rem; color: var(--accent-strong); font-size: .83rem; font-weight: 600; }
@@ -77,7 +83,10 @@ button { color: inherit; }
   .topbar { align-items: flex-start; flex-direction: column; gap: .75rem; padding: .75rem 1rem; }
   .tools { width: 100%; }
   .tools input { min-height: 2.9rem; }
-  .shell { width: min(100% - 2rem, 78rem); padding-top: 2rem; }
+  .shell { width: min(100% - 2rem, 112rem); padding-top: 1.25rem; }
+  .shelf-controls { display: block; margin-bottom: 1rem; padding-bottom: .8rem; }
+  .category-label { display: block; padding: 0 0 .45rem; }
+  .category-filters { flex-wrap: nowrap; overflow-x: auto; padding: .15rem .1rem .45rem; scrollbar-width: thin; }
   .book-list { grid-template-columns: 1fr; }
   .reader-layout { display: block; }
   .contents { position: static; max-height: 13rem; margin-bottom: 1rem; padding: .2rem 0 .75rem; border-bottom: 1px solid var(--line); }

@@ -1,5 +1,6 @@
 const search = document.querySelector("#book-search");
 const bookList = document.querySelector("#book-list");
+const categoryFilters = document.querySelector("#category-filters");
 const shelfView = document.querySelector("#shelf-view");
 const readerView = document.querySelector("#reader-view");
 const readerTitle = document.querySelector("#reading-book-title");
@@ -11,13 +12,44 @@ let books = [];
 let chapters = [];
 let activeIndex = 0;
 let activeBook = null;
+let activeCategory = "";
 
 async function loadBooks() {
   const response = await fetch("book-index.json");
   if (!response.ok) throw new Error("无法读取书目数据");
   const data = await response.json();
-  books = data.books || [];
+  books = (data.books || []).filter(book => Number(book.chapterCount) > 0);
+  renderCategoryFilters();
   renderBooks(books);
+}
+
+function renderCategoryFilters() {
+  const categories = [...new Set(books.map(book => book.category).filter(Boolean))];
+  const options = ["", ...categories];
+  categoryFilters.replaceChildren();
+  for (const category of options) {
+    const button = document.createElement("button");
+    button.className = "category-filter";
+    if (category === activeCategory) button.classList.add("is-active");
+    button.type = "button";
+    button.textContent = category || "全部";
+    button.setAttribute("aria-pressed", String(category === activeCategory));
+    button.addEventListener("click", () => {
+      activeCategory = category;
+      renderCategoryFilters();
+      filterBooks();
+    });
+    categoryFilters.append(button);
+  }
+}
+
+function filterBooks() {
+  const query = search.value.trim().toLocaleLowerCase();
+  renderBooks(books.filter(book => {
+    const matchesCategory = !activeCategory || book.category === activeCategory;
+    const matchesQuery = `${book.title} ${book.author} ${book.category}`.toLocaleLowerCase().includes(query);
+    return matchesCategory && matchesQuery;
+  }));
 }
 
 function renderBooks(items) {
@@ -43,9 +75,8 @@ function renderBooks(items) {
     const button = document.createElement("button");
     button.className = "read-button";
     button.type = "button";
-    button.textContent = book.chapterCount ? "开始阅读" : "正文整理中";
-    button.disabled = !book.chapterCount;
-    if (book.chapterCount) button.addEventListener("click", () => openBook(book));
+    button.textContent = "开始阅读";
+    button.addEventListener("click", () => openBook(book));
     footer.append(button);
     card.append(category, title, author, footer);
     bookList.append(card);
@@ -101,8 +132,7 @@ function showChapter(index) {
 }
 
 search.addEventListener("input", () => {
-  const query = search.value.trim().toLocaleLowerCase();
-  renderBooks(books.filter(book => `${book.title} ${book.author} ${book.category}`.toLocaleLowerCase().includes(query)));
+  filterBooks();
 });
 
 document.querySelector("#back-button").addEventListener("click", () => {
