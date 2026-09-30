@@ -1,0 +1,140 @@
+{
+  "books": [
+    {
+      "id": "schelling-transcendental-idealism",
+      "title": "先验唯心论体系",
+      "author": "谢林",
+      "category": "德国古典哲学",
+      "stateLabel": "扫描版 · 待 OCR",
+      "chapterCount": 0
+    },
+    {
+      "id": "guns-germs-and-steel",
+      "title": "枪炮、病菌与钢铁：人类社会的命运",
+      "author": "贾雷德·戴蒙德",
+      "category": "历史与社会科学",
+      "stateLabel": "电子版 · 38 节",
+      "chapterCount": 38
+    },
+    {
+      "id": "chinese-working-women-pan-yi",
+      "title": "中国女工：新兴打工阶级的呼唤",
+      "author": "潘毅",
+      "category": "社会学与劳动研究",
+      "stateLabel": "文字版 · 11 节",
+      "chapterCount": 11
+    },
+    {
+      "id": "factory-boy-ding-yan",
+      "title": "工厂男孩",
+      "author": "丁燕",
+      "category": "社会学与劳动研究",
+      "stateLabel": "文字版 · 13 节",
+      "chapterCount": 13
+    },
+    {
+      "id": "factory-girl-ding-yan",
+      "title": "工厂女孩",
+      "author": "丁燕",
+      "category": "社会学与劳动研究",
+      "stateLabel": "扫描版 · 待 OCR",
+      "chapterCount": 0
+    },
+    {
+      "id": "bettelheim-industrial-organization",
+      "title": "中国的文化大革命与工业组织",
+      "author": "夏尔·贝特兰",
+      "category": "社会主义革命与建设",
+      "stateLabel": "文字版 · 10 节",
+      "chapterCount": 10
+    },
+    {
+      "id": "chinese-ancient-history-vol1",
+      "title": "中国古代史（上册，1975）",
+      "author": "南京大学历史系中国古代史教研组",
+      "category": "中国古代史",
+      "stateLabel": "文字版 · 14 节",
+      "chapterCount": 14
+    },
+    {
+      "id": "chinese-ancient-history-vol2",
+      "title": "中国古代史（中册）",
+      "author": "南京大学历史系中国古代史教研组",
+      "category": "中国古代史",
+      "stateLabel": "文字版 · 8 节",
+      "chapterCount": 8
+    },
+    {
+      "id": "chinese-ancient-history-vol3",
+      "title": "中国古代史（下册）",
+      "author": "南京大学历史系中国古代史教研组",
+      "category": "中国古代史",
+      "stateLabel": "文字版 · 3 节",
+      "chapterCount": 3
+    },
+    {
+      "id": "bai-shouyi-history-lectures",
+      "title": "白寿彝史学二十讲套装（十一册）",
+      "author": "白至德",
+      "category": "中国古代史",
+      "stateLabel": "电子版 · 231 节",
+      "chapterCount": 231
+    },
+    {
+      "id": "reactionary-saint-confucius",
+      "title": "反动阶级的圣人——孔子",
+      "author": "杨荣国",
+      "category": "中国古代思想史",
+      "stateLabel": "电子版 · 9 节",
+      "chapterCount": 9
+    },
+    {
+      "id": "short-world-history-modern",
+      "title": "简明世界史：现代部分",
+      "author": "北京大学历史系简明世界史编写组",
+      "category": "世界史",
+      "stateLabel": "文字版 · 13 节",
+      "chapterCount": 13
+    },
+    {
+      "id": "short-world-history-ancient",
+      "title": "简明世界史：古代部分",
+      "author": "北京大学历史系简明世界史编写组",
+      "category": "世界史",
+      "stateLabel": "文字版 · 18 节",
+      "chapterCount": 18
+    },
+    {
+      "id": "short-world-history-modern-period",
+      "title": "简明世界史：近代部分",
+      "author": "北京大学历史系简明世界史编写组",
+      "category": "世界史",
+      "stateLabel": "文字版 · 17 节",
+      "chapterCount": 17
+    },
+    {
+      "id": "western-philosophy-history-upper",
+      "title": "西方哲学史 上",
+      "author": "全增嘏",
+      "category": "西方哲学",
+      "stateLabel": "文字版 · 36 节",
+      "chapterCount": 36
+    },
+    {
+      "id": "western-philosophy-history-lower",
+      "title": "西方哲学史 下",
+      "author": "全增嘏",
+      "category": "西方哲学",
+      "stateLabel": "文字版 · 24 节",
+      "chapterCount": 24
+    },
+    {
+      "id": "workers-revolutionary-philosophy-history",
+      "title": "中国劳动人民革命哲学史略（讨论稿）",
+      "author": "湖北省襄樊市工人理论小组、武汉大学哲学系七二级学员",
+      "category": "中国哲学史",
+      "stateLabel": "文字版 · 15 节",
+      "chapterCount": 15
+    }
+  ]
+}

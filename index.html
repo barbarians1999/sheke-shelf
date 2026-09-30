@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#e9eef2">
+  <meta name="description" content="社科书架：一份持续整理的社会科学与思想史书目。">
+  <title>社科书架</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='4' fill='%232c59bf'/%3E%3Ctext x='20' y='28' text-anchor='middle' font-size='23' fill='white' font-family='sans-serif'%3E社%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#shelf" aria-label="社科书架首页">
+      <span class="brand-mark" aria-hidden="true">社</span>
+      <span>社科书架</span>
+    </a>
+    <div class="tools" id="shelf-tools">
+      <label class="visually-hidden" for="book-search">搜索书目</label>
+      <input id="book-search" type="search" placeholder="搜索书名或作者" autocomplete="off" enterkeyhint="search">
+    </div>
+  </header>
+
+  <main class="shell">
+    <section id="shelf-view" aria-label="藏书列表">
+      <div id="book-list" class="book-list" aria-live="polite"></div>
+      <p id="empty-state" class="empty-state" hidden>没有找到这本书。</p>
+    </section>
+
+    <section id="reader-view" class="reader" aria-label="在线阅读" hidden>
+      <div class="reader-header">
+        <button id="back-button" class="quiet-button" type="button">返回书架</button>
+        <span id="reader-position" class="reader-position"></span>
+      </div>
+      <div class="reader-layout">
+        <aside class="contents">
+          <h2>目录</h2>
+          <nav id="chapter-list" aria-label="章节目录"></nav>
+        </aside>
+        <article class="reading-page">
+          <p id="reading-book-title" class="reading-book-title"></p>
+          <h2 id="chapter-title"></h2>
+          <div id="chapter-content" class="chapter-content" tabindex="-1"></div>
+          <div class="chapter-navigation">
+            <button id="previous-chapter" class="nav-button" type="button">上一章</button>
+            <button id="next-chapter" class="nav-button primary" type="button">下一章</button>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">友情链接：<a href="https://zuorenshujia.netlify.app/" target="_blank" rel="noopener noreferrer">https://zuorenshujia.netlify.app/</a></footer>
+  <script src="app.js" defer></script>
+</body>
+</html>
