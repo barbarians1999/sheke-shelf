@@ -167,6 +167,14 @@
       "category": "俄国文学",
       "stateLabel": "文字版 · 59 节",
       "chapterCount": 59
+    },
+    {
+      "id": "luxun-complete-works",
+      "title": "鲁迅全集",
+      "author": "鲁迅",
+      "category": "中国现代文学",
+      "stateLabel": "文字版 · 18 卷 · 244 节",
+      "chapterCount": 244
     }
   ]
 }
