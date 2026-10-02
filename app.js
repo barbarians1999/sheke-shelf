@@ -13,9 +13,10 @@ let chapters = [];
 let activeIndex = 0;
 let activeBook = null;
 let activeCategory = "";
+let chapterRequestId = 0;
 
 async function loadBooks() {
-  const response = await fetch("book-index.json?v=20260930", { cache: "no-store" });
+  const response = await fetch("book-index.json?v=20261002", { cache: "no-store" });
   if (!response.ok) throw new Error("无法读取书目数据");
   const data = await response.json();
   books = (data.books || []).filter(book => Number(book.chapterCount) > 0);
@@ -84,7 +85,8 @@ function renderBooks(items) {
 }
 
 async function openBook(book) {
-  const response = await fetch(`books/${encodeURIComponent(book.id)}/chapters.json`, { cache: "no-store" });
+  const chapterSource = book.chapterManifest || `books/${encodeURIComponent(book.id)}/chapters.json`;
+  const response = await fetch(chapterSource, { cache: "no-store" });
   if (!response.ok) return;
   const data = await response.json();
   activeBook = book;
@@ -95,7 +97,7 @@ async function openBook(book) {
   document.querySelector("#shelf-tools").hidden = true;
   readerTitle.textContent = `${book.title} · ${book.author}`;
   renderChapterList();
-  showChapter(0);
+  await showChapter(0);
   location.hash = book.id;
 }
 
@@ -111,22 +113,43 @@ function renderChapterList() {
   });
 }
 
-function showChapter(index) {
+async function showChapter(index) {
   if (!chapters[index]) return;
+  const requestId = ++chapterRequestId;
   activeIndex = index;
   const chapter = chapters[index];
   chapterTitle.textContent = chapter.title;
   chapterContent.replaceChildren();
-  for (const paragraph of chapter.paragraphs || []) {
+  const links = chapterList.querySelectorAll(".chapter-link");
+  links.forEach((link, i) => link.setAttribute("aria-current", i === index ? "page" : "false"));
+  document.querySelector("#previous-chapter").disabled = index === 0;
+  document.querySelector("#next-chapter").disabled = index === chapters.length - 1;
+
+  let content = chapter;
+  try {
+    if (chapter.file) {
+      readerPosition.textContent = `${index + 1} / ${chapters.length} · 正在加载`;
+      const response = await fetch(chapter.file, { cache: "no-store" });
+      if (!response.ok) throw new Error("无法读取章节正文");
+      content = await response.json();
+    }
+  } catch {
+    if (requestId !== chapterRequestId) return;
+    const message = document.createElement("p");
+    message.textContent = "这一节暂时无法加载，请稍后重试。";
+    chapterContent.replaceChildren(message);
+    readerPosition.textContent = `${index + 1} / ${chapters.length} · 加载失败`;
+    return;
+  }
+
+  if (requestId !== chapterRequestId) return;
+  chapterTitle.textContent = content.title || chapter.title;
+  for (const paragraph of content.paragraphs || []) {
     const p = document.createElement("p");
     p.textContent = paragraph;
     chapterContent.append(p);
   }
-  const links = chapterList.querySelectorAll(".chapter-link");
-  links.forEach((link, i) => link.setAttribute("aria-current", i === index ? "page" : "false"));
   readerPosition.textContent = `${index + 1} / ${chapters.length}`;
-  document.querySelector("#previous-chapter").disabled = index === 0;
-  document.querySelector("#next-chapter").disabled = index === chapters.length - 1;
   chapterContent.focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
