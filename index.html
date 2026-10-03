@@ -7,7 +7,7 @@
   <meta name="description" content="社科书架：一份持续整理的社会科学与思想史书目。">
   <title>社科书架</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='4' fill='%232c59bf'/%3E%3Ctext x='20' y='28' text-anchor='middle' font-size='23' fill='white' font-family='sans-serif'%3E社%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261003-toc">
+  <link rel="stylesheet" href="styles.css?v=20261003-toc-header">
 </head>
 <body>
   <header class="topbar">
@@ -34,14 +34,14 @@
     <section id="reader-view" class="reader" aria-label="在线阅读" hidden>
       <div class="reader-header">
         <button id="back-button" class="quiet-button" type="button">返回书架</button>
-        <span id="reader-position" class="reader-position"></span>
+        <div class="reader-header-tools">
+          <span id="reader-position" class="reader-position"></span>
+          <button id="toggle-contents" class="contents-toggle" type="button" aria-controls="chapter-list" aria-expanded="true">收起目录</button>
+        </div>
       </div>
       <div id="reader-layout" class="reader-layout">
         <aside class="contents">
-          <div class="contents-heading">
-            <h2>目录</h2>
-            <button id="toggle-contents" class="contents-toggle" type="button" aria-controls="chapter-list" aria-expanded="true">收起目录</button>
-          </div>
+          <h2>目录</h2>
           <nav id="chapter-list" aria-label="章节目录"></nav>
         </aside>
         <article class="reading-page">
