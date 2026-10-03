@@ -1,11 +1,13 @@
 const search = document.querySelector("#book-search");
 const bookList = document.querySelector("#book-list");
 const categoryFilters = document.querySelector("#category-filters");
-const bookListToggle = document.querySelector("#toggle-book-list");
 const shelfView = document.querySelector("#shelf-view");
 const readerView = document.querySelector("#reader-view");
 const readerTitle = document.querySelector("#reading-book-title");
 const chapterList = document.querySelector("#chapter-list");
+const readerLayout = document.querySelector("#reader-layout");
+const contentsToggle = document.querySelector("#toggle-contents");
+const desktopReader = window.matchMedia("(min-width: 721px)");
 const chapterTitle = document.querySelector("#chapter-title");
 const chapterContent = document.querySelector("#chapter-content");
 const readerPosition = document.querySelector("#reader-position");
@@ -46,19 +48,12 @@ function renderCategoryFilters() {
 }
 
 function filterBooks() {
-  setBookListCollapsed(false);
   const query = search.value.trim().toLocaleLowerCase();
   renderBooks(books.filter(book => {
     const matchesCategory = !activeCategory || book.category === activeCategory;
     const matchesQuery = `${book.title} ${book.author} ${book.category}`.toLocaleLowerCase().includes(query);
     return matchesCategory && matchesQuery;
   }));
-}
-
-function setBookListCollapsed(collapsed) {
-  bookList.classList.toggle("is-collapsed", collapsed);
-  bookListToggle.setAttribute("aria-expanded", String(!collapsed));
-  bookListToggle.textContent = collapsed ? "展开书目" : "收起书目";
 }
 
 function renderBooks(items) {
@@ -100,6 +95,7 @@ async function openBook(book) {
   activeBook = book;
   chapters = data.chapters || [];
   activeIndex = 0;
+  setContentsCollapsed(false);
   shelfView.hidden = true;
   readerView.hidden = false;
   document.querySelector("#shelf-tools").hidden = true;
@@ -119,6 +115,14 @@ function renderChapterList() {
     button.addEventListener("click", () => showChapter(index));
     chapterList.append(button);
   });
+}
+
+function setContentsCollapsed(collapsed) {
+  const shouldCollapse = collapsed && desktopReader.matches;
+  readerLayout.classList.toggle("is-contents-collapsed", shouldCollapse);
+  chapterList.hidden = shouldCollapse;
+  contentsToggle.setAttribute("aria-expanded", String(!shouldCollapse));
+  contentsToggle.textContent = shouldCollapse ? "展开目录" : "收起目录";
 }
 
 async function showChapter(index) {
@@ -166,8 +170,12 @@ search.addEventListener("input", () => {
   filterBooks();
 });
 
-bookListToggle.addEventListener("click", () => {
-  setBookListCollapsed(bookListToggle.getAttribute("aria-expanded") === "true");
+contentsToggle.addEventListener("click", () => {
+  setContentsCollapsed(contentsToggle.getAttribute("aria-expanded") === "true");
+});
+
+desktopReader.addEventListener("change", event => {
+  if (!event.matches) setContentsCollapsed(false);
 });
 
 document.querySelector("#back-button").addEventListener("click", () => {
