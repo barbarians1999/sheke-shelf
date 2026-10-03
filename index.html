@@ -7,7 +7,7 @@
   <meta name="description" content="社科书架：一份持续整理的社会科学与思想史书目。">
   <title>社科书架</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='4' fill='%232c59bf'/%3E%3Ctext x='20' y='28' text-anchor='middle' font-size='23' fill='white' font-family='sans-serif'%3E社%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261003">
 </head>
 <body>
   <header class="topbar">
@@ -26,6 +26,9 @@
       <div class="shelf-controls">
         <span class="category-label">按主题</span>
         <nav id="category-filters" class="category-filters" aria-label="按主题筛选"></nav>
+      </div>
+      <div class="book-list-toolbar">
+        <button id="toggle-book-list" class="book-list-toggle" type="button" aria-controls="book-list" aria-expanded="true">收起书目</button>
       </div>
       <div id="book-list" class="book-list" aria-live="polite"></div>
       <p id="empty-state" class="empty-state" hidden>没有找到这本书。</p>
@@ -54,6 +57,6 @@
     </section>
   </main>
   <footer class="site-footer">友情链接：<a href="https://zuorenshujia.netlify.app/" target="_blank" rel="noopener noreferrer">https://zuorenshujia.netlify.app/</a> · <a href="https://barbarians1999.github.io/zuoren-shelf/" target="_blank" rel="noopener noreferrer">https://barbarians1999.github.io/zuoren-shelf/</a></footer>
-  <script src="app.js?v=20261002" defer></script>
+  <script src="app.js?v=20261003" defer></script>
 </body>
 </html>
