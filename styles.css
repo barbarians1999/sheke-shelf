@@ -15,7 +15,7 @@
 
 * { box-sizing: border-box; }
 html { background: var(--ground); scroll-behavior: smooth; }
-body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--ground); }
+body { display: flex; min-height: 100vh; flex-direction: column; margin: 0; color: var(--ink); background: var(--ground); }
 button, input { font: inherit; }
 button { color: inherit; }
 [hidden] { display: none !important; }
@@ -38,7 +38,7 @@ button { color: inherit; }
 .tools input::placeholder { color: #778694; }
 .tools input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 32%, white); outline-offset: 2px; }
 #shelf-count { color: var(--muted); font-size: .84rem; white-space: nowrap; }
-.shell { width: min(calc(100% - 4rem), 112rem); margin: 0 auto; padding: clamp(1.6rem, 3vw, 3.2rem) 0 5rem; }
+.shell { flex: 1 0 auto; width: min(calc(100% - 4rem), 112rem); margin: 0 auto; padding: clamp(1.6rem, 3vw, 3.2rem) 0 5rem; }
 .shelf-controls { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
 .category-label { flex: 0 0 auto; padding: .55rem 0; color: var(--muted); font-size: .88rem; font-weight: 600; }
 .category-filters { min-width: 0; display: flex; flex-wrap: wrap; gap: .45rem; }
