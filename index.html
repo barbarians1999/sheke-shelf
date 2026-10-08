@@ -7,7 +7,7 @@
   <meta name="description" content="社科书架：一份持续整理的社会科学与思想史书目。">
   <title>社科书架</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='4' fill='%232c59bf'/%3E%3Ctext x='20' y='28' text-anchor='middle' font-size='23' fill='white' font-family='sans-serif'%3E社%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261003-toc-header">
+  <link rel="stylesheet" href="styles.css?v=20261008-reader-font-notes">
 </head>
 <body>
   <header class="topbar">
@@ -36,6 +36,13 @@
         <button id="back-button" class="quiet-button" type="button">返回书架</button>
         <div class="reader-header-tools">
           <span id="reader-position" class="reader-position"></span>
+          <details id="font-settings" class="font-settings">
+            <summary>字体</summary>
+            <div class="font-menu" role="group" aria-label="阅读字体">
+              <button type="button" data-reading-font="hanyi" aria-pressed="false">汉仪书仿55w</button>
+              <button type="button" data-reading-font="fangsong" aria-pressed="false">字体管家仿宋</button>
+            </div>
+          </details>
           <button id="toggle-contents" class="contents-toggle" type="button" aria-controls="chapter-list" aria-expanded="true">收起目录</button>
         </div>
       </div>
@@ -57,6 +64,6 @@
     </section>
   </main>
   <footer class="site-footer">友情链接：<a href="https://zuorenshujia.netlify.app/" target="_blank" rel="noopener noreferrer">https://zuorenshujia.netlify.app/</a> · <a href="https://barbarians1999.github.io/zuoren-shelf/" target="_blank" rel="noopener noreferrer">https://barbarians1999.github.io/zuoren-shelf/</a></footer>
-  <script src="app.js?v=20261003-toc" defer></script>
+  <script src="app.js?v=20261008-reader-font-notes" defer></script>
 </body>
 </html>

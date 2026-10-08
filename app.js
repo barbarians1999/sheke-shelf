@@ -11,12 +11,34 @@ const desktopReader = window.matchMedia("(min-width: 721px)");
 const chapterTitle = document.querySelector("#chapter-title");
 const chapterContent = document.querySelector("#chapter-content");
 const readerPosition = document.querySelector("#reader-position");
+const readingFontKey = "sheke-reading-font:v1";
 let books = [];
 let chapters = [];
 let activeIndex = 0;
 let activeBook = null;
 let activeCategory = "";
 let chapterRequestId = 0;
+
+function applyReadingFont(font, persist = false) {
+  const selected = ["hanyi", "fangsong"].includes(font) ? font : "";
+  if (selected) document.documentElement.dataset.readingFont = selected;
+  else delete document.documentElement.dataset.readingFont;
+  document.querySelectorAll("[data-reading-font]").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.readingFont === selected));
+  });
+  if (persist) {
+    try {
+      if (selected) localStorage.setItem(readingFontKey, selected);
+      else localStorage.removeItem(readingFontKey);
+    } catch { /* The current choice still applies for this visit. */ }
+  }
+}
+
+try {
+  applyReadingFont(localStorage.getItem(readingFontKey));
+} catch {
+  applyReadingFont("");
+}
 
 async function loadBooks() {
   const response = await fetch("book-index.json?v=20261002", { cache: "no-store" });
@@ -156,14 +178,113 @@ async function showChapter(index) {
 
   if (requestId !== chapterRequestId) return;
   chapterTitle.textContent = content.title || chapter.title;
-  for (const paragraph of content.paragraphs || []) {
-    const p = document.createElement("p");
-    p.textContent = paragraph;
-    chapterContent.append(p);
-  }
+  for (const paragraph of content.paragraphs || []) chapterContent.append(renderParagraph(paragraph));
   readerPosition.textContent = `${index + 1} / ${chapters.length}`;
   chapterContent.focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+const circledNotePattern = /[\u2460-\u2473]/gu;
+const circledNotes = Array.from("①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳");
+
+function extractBettelheimNotes(paragraph) {
+  const occurrences = [...paragraph.matchAll(circledNotePattern)];
+  if (!occurrences.length) return null;
+
+  for (const candidate of occurrences) {
+    if (candidate.index < paragraph.length * 0.55) continue;
+    if (!paragraph.slice(0, candidate.index).includes(candidate[0])) continue;
+    if (!/^\s/u.test(paragraph.slice(candidate.index + candidate[0].length))) continue;
+
+    const tail = paragraph.slice(candidate.index);
+    const noteMarkers = [...tail.matchAll(circledNotePattern)];
+    const order = noteMarkers.map(marker => circledNotes.indexOf(marker[0]));
+    if (order.some((value, index) => value < 0 || (index > 0 && value <= order[index - 1]))) continue;
+    if (noteMarkers.some(marker => !paragraph.slice(0, candidate.index).includes(marker[0]))) continue;
+
+    const annotations = noteMarkers.map((marker, index) => ({
+      marker: marker[0],
+      text: tail.slice(marker.index + marker[0].length, noteMarkers[index + 1]?.index ?? tail.length).trim()
+    }));
+    if (annotations.some(note => !note.text)) continue;
+    return { body: paragraph.slice(0, candidate.index).trimEnd(), annotations };
+  }
+  return null;
+}
+
+function parseStandaloneNote(paragraph) {
+  const match = paragraph.match(/^\s*(\[\s*\d{1,3}\s*\]|［\s*\d{1,3}\s*］|（\s*\d{1,3}\s*）|\(\s*\d{1,3}\s*\))\s*([\s\S]*)$/u);
+  if (!match || !/(?:译者注|编者注|原注|注释|编者按)/u.test(match[2])) return null;
+  return { marker: match[1].replace(/\s/g, ""), text: match[2].trim() };
+}
+
+function createAnnotationDetails(marker, text, inline = false) {
+  const details = document.createElement("details");
+  details.className = inline ? "inline-annotation" : "standalone-annotation";
+  const summary = document.createElement("summary");
+  summary.textContent = inline ? marker : `注释 ${marker}`;
+  summary.setAttribute("aria-label", `展开注释 ${marker}`);
+  const box = document.createElement("span");
+  box.className = "annotation-box";
+  const label = document.createElement("strong");
+  label.className = "annotation-label";
+  label.textContent = `注释 ${marker}`;
+  const content = document.createElement("span");
+  content.textContent = text;
+  box.append(label, content);
+  details.append(summary, box);
+  details.addEventListener("toggle", () => {
+    if (!details.open || !inline) return;
+    const rect = details.getBoundingClientRect();
+    details.classList.toggle("opens-left", rect.left > window.innerWidth * 0.58);
+  });
+  return details;
+}
+
+function appendParagraphWithAnnotations(paragraph, body, annotations) {
+  const notes = new Map(annotations.map(note => [note.marker, note.text]));
+  let cursor = 0;
+  for (const match of body.matchAll(circledNotePattern)) {
+    const note = notes.get(match[0]);
+    if (!note) continue;
+    paragraph.append(document.createTextNode(body.slice(cursor, match.index)));
+    paragraph.append(createAnnotationDetails(match[0], note, true));
+    cursor = match.index + match[0].length;
+  }
+  paragraph.append(document.createTextNode(body.slice(cursor)));
+}
+
+const inlineEditorialNotePattern = /[（(]([^（）()]{1,300}?(?:注[：:]|(?:译者|编者|原)注)[^（）()]{0,260}?)[）)]/gu;
+
+function appendInlineEditorialNotes(paragraph, text) {
+  let cursor = 0;
+  let found = false;
+  for (const match of text.matchAll(inlineEditorialNotePattern)) {
+    found = true;
+    paragraph.append(document.createTextNode(text.slice(cursor, match.index)));
+    const label = match[1].match(/(?:译者注|编者注|原注|注[：:])/u)?.[0] || "注";
+    paragraph.append(createAnnotationDetails(label.replace(/[：:]/u, ""), match[1].trim(), true));
+    cursor = match.index + match[0].length;
+  }
+  if (!found) {
+    paragraph.textContent = text;
+    return;
+  }
+  paragraph.append(document.createTextNode(text.slice(cursor)));
+}
+
+function renderParagraph(value) {
+  const paragraph = document.createElement("p");
+  const text = typeof value === "string" ? value : String(value?.text || "");
+  const standaloneNote = parseStandaloneNote(text);
+  if (standaloneNote) return createAnnotationDetails(standaloneNote.marker, standaloneNote.text);
+
+  const annotations = activeBook?.id === "bettelheim-industrial-organization"
+    ? extractBettelheimNotes(text)
+    : null;
+  if (annotations) appendParagraphWithAnnotations(paragraph, annotations.body, annotations.annotations);
+  else appendInlineEditorialNotes(paragraph, text);
+  return paragraph;
 }
 
 search.addEventListener("input", () => {
@@ -172,6 +293,19 @@ search.addEventListener("input", () => {
 
 contentsToggle.addEventListener("click", () => {
   setContentsCollapsed(contentsToggle.getAttribute("aria-expanded") === "true");
+});
+
+document.querySelectorAll("[data-reading-font]").forEach(button => {
+  button.addEventListener("click", () => applyReadingFont(button.dataset.readingFont, true));
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key !== "Escape") return;
+  const openAnnotation = chapterContent.querySelector(".inline-annotation[open]");
+  if (!openAnnotation) return;
+  openAnnotation.open = false;
+  openAnnotation.querySelector("summary")?.focus({ preventScroll: true });
+  event.preventDefault();
 });
 
 desktopReader.addEventListener("change", event => {

@@ -62,7 +62,7 @@ button { color: inherit; }
 .empty-state { padding: 1.25rem; border: 1px dashed var(--line); color: var(--muted); }
 
 .reader-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
-.reader-header-tools { display: flex; align-items: center; gap: 1rem; }
+.reader-header-tools { display: flex; align-items: center; gap: .7rem; }
 .quiet-button { min-height: 2.5rem; border: 0; padding: .5rem 0; background: transparent; color: var(--accent-strong); font-weight: 600; cursor: pointer; }
 .reader-position { color: var(--muted); font-size: .88rem; }
 .reader-layout { display: grid; grid-template-columns: minmax(13rem, 18rem) minmax(0, 1fr); gap: clamp(1.1rem, 4vw, 4rem); padding-top: 1.6rem; }
@@ -70,6 +70,14 @@ button { color: inherit; }
 .contents h2 { margin: 0 0 .8rem; font-size: 1rem; }
 .contents-toggle { min-height: 2.25rem; border: 1px solid var(--line); border-radius: .16rem; padding: .4rem .7rem; background: transparent; color: var(--accent-strong); cursor: pointer; font-size: .88rem; font-weight: 600; transition: background-color .16s ease, border-color .16s ease; }
 .contents-toggle:hover { border-color: var(--accent); background: var(--accent-pale); }
+.font-settings { position: relative; z-index: 4; }
+.font-settings > summary { display: inline-flex; min-height: 2.25rem; align-items: center; border: 1px solid var(--line); border-radius: .16rem; padding: .4rem .7rem; color: var(--accent-strong); cursor: pointer; font-size: .88rem; font-weight: 600; list-style: none; }
+.font-settings > summary::-webkit-details-marker { display: none; }
+.font-settings[open] > summary, .font-settings > summary:hover { border-color: var(--accent); background: var(--accent-pale); }
+.font-menu { position: absolute; top: calc(100% + .45rem); right: 0; display: grid; min-width: 12.5rem; gap: .25rem; padding: .35rem; border: 1px solid var(--line); background: var(--surface-raised); box-shadow: 0 .6rem 1.5rem rgb(29 52 77 / .14); }
+.font-menu button { min-height: 2.5rem; border: 0; padding: .5rem .65rem; background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
+.font-menu button:hover, .font-menu button[aria-pressed="true"] { background: var(--accent-pale); color: var(--accent-strong); }
+.font-menu button[aria-pressed="true"] { font-weight: 650; }
 .reader-layout.is-contents-collapsed { grid-template-columns: minmax(0, 1fr); row-gap: .8rem; }
 .reader-layout.is-contents-collapsed .contents { display: none; }
 .chapter-link { display: block; width: 100%; border: 0; border-left: 2px solid transparent; padding: .55rem .65rem; background: transparent; text-align: left; color: var(--muted); cursor: pointer; line-height: 1.45; }
@@ -78,6 +86,24 @@ button { color: inherit; }
 .reading-book-title { margin: 0 0 1rem; color: var(--muted); font-size: .9rem; }
 .reading-page > h2 { margin: 0 0 2rem; font-size: clamp(1.65rem, 4vw, 2.5rem); line-height: 1.2; letter-spacing: -.025em; }
 .chapter-content { font-family: "Noto Serif SC", "Songti SC", "SimSun", serif; font-size: 1.16rem; line-height: 2; overflow-wrap: anywhere; }
+.chapter-content { overflow: visible; }
+.chapter-content details { font-family: inherit; }
+.chapter-content .standalone-annotation { margin: 0 0 1.2em; border: 1px solid var(--line); background: var(--surface); font-size: .9em; line-height: 1.75; }
+.standalone-annotation > summary { padding: .55rem .75rem; color: var(--accent-strong); cursor: pointer; list-style: none; }
+.standalone-annotation > summary::-webkit-details-marker { display: none; }
+.standalone-annotation[open] > summary { border-bottom: 1px solid var(--line); background: var(--accent-pale); }
+.standalone-annotation .annotation-box { position: static; display: block; width: auto; max-height: none; overflow: visible; padding: .7rem .8rem; border: 0; background: transparent; box-shadow: none; font: inherit; }
+.inline-annotation { position: relative; z-index: 1; display: inline-block; vertical-align: baseline; margin: 0 .08em; font-size: .78em; line-height: 1; }
+.inline-annotation[open] { z-index: 6; }
+.inline-annotation > summary { display: inline; padding: 0 .12em; border-bottom: 1px dotted var(--accent); color: var(--accent-strong); cursor: pointer; list-style: none; }
+.inline-annotation > summary::-webkit-details-marker { display: none; }
+.inline-annotation[open] > summary { border-radius: .12rem; background: var(--accent-pale); }
+.annotation-box { display: none; }
+.inline-annotation[open] > .annotation-box { position: absolute; top: calc(100% + .5rem); left: 0; display: block; width: min(30rem, calc(100vw - 2.5rem)); max-height: min(55vh, 24rem); overflow: auto; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: .12rem; background: var(--surface-raised); box-shadow: 0 .6rem 1.5rem rgb(29 52 77 / .16); color: var(--ink); font: .92rem/1.7 "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+.inline-annotation.opens-left[open] > .annotation-box { right: 0; left: auto; }
+.annotation-label { display: block; margin-bottom: .3rem; color: var(--accent-strong); font-size: .9em; }
+:root[data-reading-font="hanyi"] .chapter-content { font-family: "汉仪书仿 55W", "汉仪书仿55W", "汉仪书仿55w", "Noto Serif SC", "Songti SC", "SimSun", serif; }
+:root[data-reading-font="fangsong"] .chapter-content { font-family: "字体管家仿宋体", "字体管家仿宋", "Zhaoye FangSong", "FangSong", "FangSong_GB2312", "STFangsong", "仿宋", "Noto Serif SC", "Songti SC", serif; }
 .chapter-content p { margin: 0 0 1.2em; }
 .chapter-content img { display: block; max-width: 100%; height: auto; margin: 1.5rem auto; }
 .chapter-navigation { display: flex; justify-content: space-between; gap: .8rem; margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
