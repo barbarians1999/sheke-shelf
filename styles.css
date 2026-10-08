@@ -102,7 +102,13 @@ button { color: inherit; }
 .inline-annotation[open] > .annotation-box { position: absolute; top: calc(100% + .5rem); left: 0; display: block; width: min(30rem, calc(100vw - 2.5rem)); max-height: min(55vh, 24rem); overflow: auto; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: .12rem; background: var(--surface-raised); box-shadow: 0 .6rem 1.5rem rgb(29 52 77 / .16); color: var(--ink); font: .92rem/1.7 "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
 .inline-annotation.opens-left[open] > .annotation-box { right: 0; left: auto; }
 .annotation-label { display: block; margin-bottom: .3rem; color: var(--accent-strong); font-size: .9em; }
-:root[data-reading-font="hanyi"] .chapter-content { font-family: "汉仪书仿 55W", "汉仪书仿55W", "汉仪书仿55w", "Noto Serif SC", "Songti SC", "SimSun", serif; }
+@font-face {
+  font-family: "Sheke HanYi ShuFang";
+  src: local("汉仪书仿 55W"), local("汉仪书仿55W");
+  font-style: normal;
+  font-weight: normal;
+}
+:root[data-reading-font="hanyi"] .chapter-content { font-family: "Sheke HanYi ShuFang", "Noto Serif SC", "Songti SC", "SimSun", serif; }
 :root[data-reading-font="fangsong"] .chapter-content { font-family: "字体管家仿宋体", "字体管家仿宋", "Zhaoye FangSong", "FangSong", "FangSong_GB2312", "STFangsong", "仿宋", "Noto Serif SC", "Songti SC", serif; }
 .chapter-content p { margin: 0 0 1.2em; }
 .chapter-content img { display: block; max-width: 100%; height: auto; margin: 1.5rem auto; }
