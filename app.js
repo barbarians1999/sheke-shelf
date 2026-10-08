@@ -12,6 +12,11 @@ const chapterTitle = document.querySelector("#chapter-title");
 const chapterContent = document.querySelector("#chapter-content");
 const readerPosition = document.querySelector("#reader-position");
 const readingFontKey = "sheke-reading-font:v1";
+const readingSizeKey = "sheke-reading-size:v1";
+const readingSizeInput = document.querySelector("#reading-size");
+const readingSizeValue = document.querySelector("#reading-size-value");
+const resetReadingSize = document.querySelector("#reset-reading-size");
+let hasCustomReadingSize = false;
 let books = [];
 let chapters = [];
 let activeIndex = 0;
@@ -38,6 +43,48 @@ try {
   applyReadingFont(localStorage.getItem(readingFontKey));
 } catch {
   applyReadingFont("");
+}
+
+function updateReadingSizeDisplay(size) {
+  const rounded = Math.round(Number.parseFloat(size) * 10) / 10;
+  if (!Number.isFinite(rounded)) return;
+  readingSizeInput.value = String(rounded);
+  readingSizeValue.value = `${rounded.toFixed(1)} px`;
+  readingSizeValue.textContent = `${rounded.toFixed(1)} px`;
+}
+
+function applyReadingSize(size, persist = false) {
+  const parsed = size === null ? null : Number.parseFloat(size);
+  const valid = Number.isFinite(parsed) && parsed >= 14 && parsed <= 30;
+  hasCustomReadingSize = valid;
+
+  if (valid) {
+    const value = `${parsed}px`;
+    document.documentElement.style.setProperty("--chapter-font-size", value);
+    updateReadingSizeDisplay(parsed);
+    if (persist) {
+      try { localStorage.setItem(readingSizeKey, String(parsed)); } catch { /* The current choice still applies for this visit. */ }
+    }
+    return;
+  }
+
+  document.documentElement.style.removeProperty("--chapter-font-size");
+  if (persist) {
+    try { localStorage.removeItem(readingSizeKey); } catch { /* The default still applies for this visit. */ }
+  }
+  updateReadingSizeDisplay(getComputedStyle(chapterContent).fontSize);
+}
+
+try {
+  const savedSize = localStorage.getItem(readingSizeKey);
+  if (savedSize !== null && Number.isFinite(Number(savedSize)) && Number(savedSize) >= 14 && Number(savedSize) <= 30) {
+    applyReadingSize(savedSize);
+  } else {
+    if (savedSize !== null) localStorage.removeItem(readingSizeKey);
+    applyReadingSize(null);
+  }
+} catch {
+  applyReadingSize(null);
 }
 
 async function loadBooks() {
@@ -299,6 +346,9 @@ document.querySelectorAll("[data-reading-font]").forEach(button => {
   button.addEventListener("click", () => applyReadingFont(button.dataset.readingFont, true));
 });
 
+readingSizeInput.addEventListener("input", () => applyReadingSize(readingSizeInput.value, true));
+resetReadingSize.addEventListener("click", () => applyReadingSize(null, true));
+
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape") return;
   const openAnnotation = chapterContent.querySelector(".inline-annotation[open]");
@@ -310,6 +360,7 @@ document.addEventListener("keydown", event => {
 
 desktopReader.addEventListener("change", event => {
   if (!event.matches) setContentsCollapsed(false);
+  if (!hasCustomReadingSize) updateReadingSizeDisplay(getComputedStyle(chapterContent).fontSize);
 });
 
 document.querySelector("#back-button").addEventListener("click", () => {
