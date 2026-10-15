@@ -28,7 +28,7 @@ function applyReadingFont(font, persist = false) {
   const selected = ["hanyi", "fangsong"].includes(font) ? font : "";
   if (selected) document.documentElement.dataset.readingFont = selected;
   else delete document.documentElement.dataset.readingFont;
-  document.querySelectorAll("[data-reading-font]").forEach(button => {
+  document.querySelectorAll("button[data-reading-font]").forEach(button => {
     button.setAttribute("aria-pressed", String(button.dataset.readingFont === selected));
   });
   if (persist) {
@@ -125,8 +125,23 @@ function filterBooks() {
   }));
 }
 
+function createBookCover(book) {
+  const cover = document.createElement("div");
+  const variant = [...book.id].reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % 4;
+  cover.className = `book-cover cover-variant-${variant}`;
+  cover.setAttribute("aria-hidden", "true");
+  const title = document.createElement("span");
+  title.className = "cover-title";
+  title.textContent = book.title.replace(/[：:].*$/, "");
+  const motif = document.createElement("span");
+  motif.className = "cover-motif";
+  cover.append(title, motif);
+  return cover;
+}
+
 function renderBooks(items) {
   bookList.replaceChildren();
+  document.querySelector("#shelf-count").textContent = `${items.length} 本`;
   document.querySelector("#empty-state").hidden = items.length !== 0;
   for (const book of items) {
     const card = document.createElement("article");
@@ -151,7 +166,7 @@ function renderBooks(items) {
     button.textContent = "开始阅读";
     button.addEventListener("click", () => openBook(book));
     footer.append(button);
-    card.append(category, title, author, footer);
+    card.append(createBookCover(book), category, title, author, footer);
     bookList.append(card);
   }
 }
@@ -342,7 +357,7 @@ contentsToggle.addEventListener("click", () => {
   setContentsCollapsed(contentsToggle.getAttribute("aria-expanded") === "true");
 });
 
-document.querySelectorAll("[data-reading-font]").forEach(button => {
+document.querySelectorAll("button[data-reading-font]").forEach(button => {
   button.addEventListener("click", () => applyReadingFont(button.dataset.readingFont, true));
 });
 
