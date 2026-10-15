@@ -125,17 +125,39 @@ function filterBooks() {
   }));
 }
 
+const bookCoverArtwork = {
+  "guns-germs-and-steel": 0,
+  "western-philosophy-history-upper": 1,
+  "western-philosophy-history-lower": 2,
+  "luxun-complete-works": 3,
+  "chinese-ancient-history-vol1": 4,
+  "chinese-ancient-history-vol2": 5,
+  "chinese-ancient-history-vol3": 6,
+  "bai-shouyi-history-lectures": 7,
+  "short-world-history-ancient": 8,
+  "short-world-history-modern-period": 9,
+  "short-world-history-modern": 10,
+  "gorky-autobiography-trilogy": 11,
+  "chinese-working-women-pan-yi": 12,
+  "factory-boy-ding-yan": 13,
+  "reactionary-saint-confucius": 14,
+  "life-of-klim-samgin": 15,
+  "mother-gorky": 15,
+};
+
 function createBookCover(book) {
   const cover = document.createElement("div");
-  const variant = [...book.id].reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % 4;
-  cover.className = `book-cover cover-variant-${variant}`;
+  const tile = bookCoverArtwork[book.id] ?? 0;
+  cover.className = "book-cover";
+  cover.style.setProperty("--cover-x", `${(tile % 4) * 100 / 3}%`);
+  cover.style.setProperty("--cover-y", `${Math.floor(tile / 4) * 100 / 3}%`);
   cover.setAttribute("aria-hidden", "true");
   const title = document.createElement("span");
   title.className = "cover-title";
-  title.textContent = book.title.replace(/[：:].*$/, "");
-  const motif = document.createElement("span");
-  motif.className = "cover-motif";
-  cover.append(title, motif);
+  title.textContent = book.title.replace(/[：:].*$/, "").replace("，1975", "").replace("套装（十一册）", "");
+  const art = document.createElement("span");
+  art.className = "cover-art";
+  cover.append(title, art);
   return cover;
 }
 
