@@ -120,12 +120,20 @@ button:active { transform: translateY(1px); }
 .annotation-label { display: block; margin-bottom: .3rem; color: var(--accent-strong); font-size: .9em; }
 @font-face {
   font-family: "Sheke HanYi ShuFang";
-  src: local("汉仪书仿 55W"), local("汉仪书仿55W");
+  src: url("fonts/HYShuFang55W.ttf") format("truetype");
   font-style: normal;
   font-weight: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Sheke FangSong";
+  src: url("fonts/ZhaoyeFangSong.woff") format("woff");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
 }
 :root[data-reading-font="hanyi"] .chapter-content { font-family: "Sheke HanYi ShuFang", "Noto Serif SC", "Songti SC", "SimSun", serif; }
-:root[data-reading-font="fangsong"] .chapter-content { font-family: "字体管家仿宋体", "字体管家仿宋", "Zhaoye FangSong", "FangSong", "FangSong_GB2312", "STFangsong", "仿宋", "Noto Serif SC", "Songti SC", serif; }
+:root[data-reading-font="fangsong"] .chapter-content { font-family: "Sheke FangSong", "字体管家仿宋体", "字体管家仿宋", "Zhaoye FangSong", "FangSong", "FangSong_GB2312", "STFangsong", "仿宋", "Noto Serif SC", "Songti SC", serif; }
 .chapter-content p { margin: 0 0 1.2em; }
 .chapter-content img { display: block; max-width: 100%; height: auto; margin: 1.5rem auto; }
 .chapter-navigation { display: flex; justify-content: space-between; gap: .8rem; margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
