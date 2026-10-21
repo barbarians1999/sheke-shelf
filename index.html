@@ -7,7 +7,7 @@
   <meta name="description" content="社科书架：一份持续整理的社会科学与思想史书目。">
   <title>社科书架</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23eef0ec'/%3E%3Cpath d='M12 7L21 13L23 24L14 31L4 27L1 16Z' fill='%23c52b28'/%3E%3Cpath d='M30 9L40 30H22Z' fill='%2320221f'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261018-web-fonts">
+  <link rel="stylesheet" href="styles.css?v=20261021-reader-controls">
 </head>
 <body>
   <header class="topbar">
@@ -33,7 +33,7 @@
     </section>
 
     <section id="reader-view" class="reader" aria-label="在线阅读" hidden>
-      <div class="reader-header">
+      <div class="reader-header" role="group" aria-label="阅读工具栏">
         <button id="back-button" class="quiet-button" type="button">返回书架</button>
         <div class="reader-header-tools">
           <span id="reader-position" class="reader-position"></span>
@@ -55,8 +55,11 @@
         </div>
       </div>
       <div id="reader-layout" class="reader-layout">
-        <aside class="contents">
-          <h2>目录</h2>
+        <aside id="contents-panel" class="contents">
+          <div class="contents-header">
+            <h2>目录</h2>
+            <button id="close-contents" class="contents-close quiet-button" type="button">关闭目录</button>
+          </div>
           <nav id="chapter-list" aria-label="章节目录"></nav>
         </aside>
         <article class="reading-page">
@@ -69,9 +72,10 @@
           </div>
         </article>
       </div>
+      <button id="contents-backdrop" class="contents-backdrop" type="button" aria-label="关闭目录" tabindex="-1" hidden></button>
     </section>
   </main>
   <footer class="site-footer">友情链接：<a href="https://barbarians1999.github.io/zuoren-shelf/" target="_blank" rel="noopener noreferrer">左人书架 GitHub Pages</a></footer>
-  <script src="app.js?v=20261015-illustrated-covers" defer></script>
+  <script src="app.js?v=20261021-reader-controls" defer></script>
 </body>
 </html>

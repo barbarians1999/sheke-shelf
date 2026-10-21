@@ -3,6 +3,11 @@ const bookList = document.querySelector("#book-list");
 const categoryFilters = document.querySelector("#category-filters");
 const shelfView = document.querySelector("#shelf-view");
 const readerView = document.querySelector("#reader-view");
+const readerHeader = document.querySelector(".reader-header");
+const readingPage = document.querySelector(".reading-page");
+const fontSettings = document.querySelector("#font-settings");
+const contentsPanel = document.querySelector("#contents-panel");
+const contentsBackdrop = document.querySelector("#contents-backdrop");
 const readerTitle = document.querySelector("#reading-book-title");
 const chapterList = document.querySelector("#chapter-list");
 const readerLayout = document.querySelector("#reader-layout");
@@ -23,6 +28,8 @@ let activeIndex = 0;
 let activeBook = null;
 let activeCategory = "";
 let chapterRequestId = 0;
+let hideControlsTimer = 0;
+let readingPointer = null;
 
 function applyReadingFont(font, persist = false) {
   const selected = ["hanyi", "fangsong"].includes(font) ? font : "";
@@ -201,9 +208,11 @@ async function openBook(book) {
   activeBook = book;
   chapters = data.chapters || [];
   activeIndex = 0;
-  setContentsCollapsed(false);
   shelfView.hidden = true;
   readerView.hidden = false;
+  document.body.classList.add("reading-active");
+  setContentsCollapsed(!desktopReader.matches);
+  setReaderControlsVisible(false);
   document.querySelector("#shelf-tools").hidden = true;
   readerTitle.textContent = `${book.title} · ${book.author}`;
   renderChapterList();
@@ -218,17 +227,49 @@ function renderChapterList() {
     button.className = "chapter-link";
     button.type = "button";
     button.textContent = chapter.title;
-    button.addEventListener("click", () => showChapter(index));
+    button.addEventListener("click", () => {
+      if (!desktopReader.matches) {
+        setContentsCollapsed(true);
+        setReaderControlsVisible(false);
+      }
+      showChapter(index);
+    });
     chapterList.append(button);
   });
 }
 
 function setContentsCollapsed(collapsed) {
-  const shouldCollapse = collapsed && desktopReader.matches;
+  const shouldCollapse = Boolean(collapsed);
   readerLayout.classList.toggle("is-contents-collapsed", shouldCollapse);
   chapterList.hidden = shouldCollapse;
+  contentsPanel.inert = shouldCollapse;
+  contentsPanel.setAttribute("aria-hidden", String(shouldCollapse));
   contentsToggle.setAttribute("aria-expanded", String(!shouldCollapse));
-  contentsToggle.textContent = shouldCollapse ? "展开目录" : "收起目录";
+  contentsToggle.textContent = desktopReader.matches ? (shouldCollapse ? "展开目录" : "收起目录") : "目录";
+  const drawerOpen = !desktopReader.matches && !shouldCollapse && !readerView.hidden;
+  contentsBackdrop.hidden = !drawerOpen;
+  document.body.classList.toggle("reader-contents-open", drawerOpen);
+  if (drawerOpen) {
+    setReaderControlsVisible(true);
+    const active = chapterList.querySelector('[aria-current="page"]');
+    (active || document.querySelector("#close-contents")).focus({ preventScroll: true });
+    if (active) contentsPanel.scrollTop += active.getBoundingClientRect().top - contentsPanel.getBoundingClientRect().top - contentsPanel.clientHeight / 2;
+  }
+}
+
+function setReaderControlsVisible(visible, autoHide = false) {
+  window.clearTimeout(hideControlsTimer);
+  readerView.classList.toggle("controls-visible", visible);
+  readerHeader.inert = !desktopReader.matches && !visible;
+  readerHeader.setAttribute("aria-hidden", String(!desktopReader.matches && !visible));
+  if (!visible) fontSettings.open = false;
+  if (visible && autoHide && !desktopReader.matches) {
+    hideControlsTimer = window.setTimeout(() => {
+      if (!document.body.classList.contains("reader-contents-open") && !fontSettings.open && !readerHeader.querySelector(":focus-visible")) {
+        setReaderControlsVisible(false);
+      }
+    }, 5000);
+  }
 }
 
 async function showChapter(index) {
@@ -377,6 +418,51 @@ search.addEventListener("input", () => {
 
 contentsToggle.addEventListener("click", () => {
   setContentsCollapsed(contentsToggle.getAttribute("aria-expanded") === "true");
+  if (!desktopReader.matches) setReaderControlsVisible(true, true);
+});
+
+function closeContentsDrawer() {
+  setContentsCollapsed(true);
+  setReaderControlsVisible(true, true);
+  contentsToggle.focus({ preventScroll: true });
+}
+document.querySelector("#close-contents").addEventListener("click", closeContentsDrawer);
+contentsBackdrop.addEventListener("click", closeContentsDrawer);
+
+readingPage.addEventListener("pointerdown", event => {
+  readingPointer = { x: event.clientX, y: event.clientY, time: Date.now() };
+});
+readingPage.addEventListener("pointercancel", () => { readingPointer = { cancelled: true }; });
+readingPage.addEventListener("click", event => {
+  const pointer = readingPointer;
+  readingPointer = null;
+  if (desktopReader.matches || readerView.hidden || event.target.closest("button, details, summary, a, input, select, label") || window.getSelection()?.toString()) return;
+  if (pointer && (pointer.cancelled || Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) > 12 || Date.now() - pointer.time > 600)) return;
+  setReaderControlsVisible(!readerView.classList.contains("controls-visible"), true);
+});
+
+fontSettings.addEventListener("toggle", () => {
+  if (!desktopReader.matches && !readerView.hidden && readerView.classList.contains("controls-visible")) {
+    setReaderControlsVisible(true, !fontSettings.open);
+  }
+});
+
+readerView.addEventListener("keydown", event => {
+  if (desktopReader.matches || event.key !== "Tab") return;
+  if (document.body.classList.contains("reader-contents-open")) {
+    const buttons = [...contentsPanel.querySelectorAll("button:not([disabled])")];
+    const first = buttons[0];
+    const last = buttons[buttons.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !contentsPanel.contains(document.activeElement))) {
+      event.preventDefault(); last.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !contentsPanel.contains(document.activeElement))) {
+      event.preventDefault(); first.focus();
+    }
+  } else if (!readerView.classList.contains("controls-visible")) {
+    event.preventDefault();
+    setReaderControlsVisible(true);
+    document.querySelector("#back-button").focus({ preventScroll: true });
+  }
 });
 
 document.querySelectorAll("button[data-reading-font]").forEach(button => {
@@ -389,19 +475,32 @@ resetReadingSize.addEventListener("click", () => applyReadingSize(null, true));
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape") return;
   const openAnnotation = chapterContent.querySelector(".inline-annotation[open]");
-  if (!openAnnotation) return;
-  openAnnotation.open = false;
-  openAnnotation.querySelector("summary")?.focus({ preventScroll: true });
-  event.preventDefault();
+  if (openAnnotation) {
+    openAnnotation.open = false;
+    openAnnotation.querySelector("summary")?.focus({ preventScroll: true });
+    event.preventDefault();
+  } else if (!desktopReader.matches && !readerView.hidden) {
+    if (document.body.classList.contains("reader-contents-open")) closeContentsDrawer();
+    else if (fontSettings.open) fontSettings.open = false;
+    else {
+      setReaderControlsVisible(false);
+      chapterContent.focus({ preventScroll: true });
+    }
+    event.preventDefault();
+  }
 });
 
-desktopReader.addEventListener("change", event => {
-  if (!event.matches) setContentsCollapsed(false);
+desktopReader.addEventListener("change", () => {
+  setReaderControlsVisible(false);
+  setContentsCollapsed(!desktopReader.matches);
   if (!hasCustomReadingSize) updateReadingSizeDisplay(getComputedStyle(chapterContent).fontSize);
 });
 
 document.querySelector("#back-button").addEventListener("click", () => {
   readerView.hidden = true;
+  document.body.classList.remove("reading-active", "reader-contents-open");
+  setContentsCollapsed(true);
+  setReaderControlsVisible(false);
   shelfView.hidden = false;
   document.querySelector("#shelf-tools").hidden = false;
   history.replaceState(null, "", location.pathname);
