@@ -249,12 +249,20 @@ function setContentsCollapsed(collapsed) {
   const drawerOpen = !desktopReader.matches && !shouldCollapse && !readerView.hidden;
   contentsBackdrop.hidden = !drawerOpen;
   document.body.classList.toggle("reader-contents-open", drawerOpen);
+  syncReaderSurface();
   if (drawerOpen) {
     setReaderControlsVisible(true);
     const active = chapterList.querySelector('[aria-current="page"]');
     (active || document.querySelector("#close-contents")).focus({ preventScroll: true });
-    if (active) contentsPanel.scrollTop += active.getBoundingClientRect().top - contentsPanel.getBoundingClientRect().top - contentsPanel.clientHeight / 2;
+    if (active) chapterList.scrollTop += active.getBoundingClientRect().top - chapterList.getBoundingClientRect().top - chapterList.clientHeight / 2;
   }
+}
+
+function syncReaderSurface() {
+  const mobileReading = !desktopReader.matches && !readerView.hidden;
+  document.documentElement.classList.toggle("mobile-reading-active", mobileReading);
+  const color = getComputedStyle(document.documentElement).getPropertyValue(mobileReading ? "--reader" : "--ground").trim();
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", color);
 }
 
 function setReaderControlsVisible(visible, autoHide = false) {
