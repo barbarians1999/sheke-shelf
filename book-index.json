@@ -152,6 +152,14 @@
       "stateLabel": "文字版 · 18 卷 · 244 节",
       "chapterManifest": "books/luxun-complete-works/index.json",
       "chapterCount": 244
+    },
+    {
+      "id": "monopoly-capital-introduction",
+      "title": "垄断资本概论——马克思主义的帝国主义理论、历史与当代",
+      "author": "马健行、高峰、张帆、色文、薛伯英、张雷声",
+      "category": "政治经济学",
+      "stateLabel": "OCR 文字初稿 · 40 节",
+      "chapterCount": 40
     }
   ]
 }
