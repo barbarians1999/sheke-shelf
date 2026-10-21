@@ -30,6 +30,7 @@ let activeCategory = "";
 let chapterRequestId = 0;
 let hideControlsTimer = 0;
 let readingPointer = null;
+let contentsReadingScrollTop = 0;
 
 function applyReadingFont(font, persist = false) {
   const selected = ["hanyi", "fangsong"].includes(font) ? font : "";
@@ -239,22 +240,30 @@ function renderChapterList() {
 }
 
 function setContentsCollapsed(collapsed) {
+  const wasOpen = document.body.classList.contains("reader-contents-open");
   const shouldCollapse = Boolean(collapsed);
+  const drawerOpen = !desktopReader.matches && !shouldCollapse && !readerView.hidden;
+  if (drawerOpen && !wasOpen) contentsReadingScrollTop = window.scrollY;
   readerLayout.classList.toggle("is-contents-collapsed", shouldCollapse);
   chapterList.hidden = shouldCollapse;
   contentsPanel.inert = shouldCollapse;
   contentsPanel.setAttribute("aria-hidden", String(shouldCollapse));
   contentsToggle.setAttribute("aria-expanded", String(!shouldCollapse));
   contentsToggle.textContent = desktopReader.matches ? (shouldCollapse ? "展开目录" : "收起目录") : "目录";
-  const drawerOpen = !desktopReader.matches && !shouldCollapse && !readerView.hidden;
   contentsBackdrop.hidden = !drawerOpen;
+  readingPage.inert = drawerOpen;
   document.body.classList.toggle("reader-contents-open", drawerOpen);
   syncReaderSurface();
   if (drawerOpen) {
-    setReaderControlsVisible(true);
+    setReaderControlsVisible(false);
     const active = chapterList.querySelector('[aria-current="page"]');
     (active || document.querySelector("#close-contents")).focus({ preventScroll: true });
-    if (active) chapterList.scrollTop += active.getBoundingClientRect().top - chapterList.getBoundingClientRect().top - chapterList.clientHeight / 2;
+    if (active) {
+      const rect = active.getBoundingClientRect();
+      window.scrollTo({ top: Math.max(0, window.scrollY + rect.top + rect.height / 2 - window.innerHeight / 2), behavior: "instant" });
+    }
+  } else if (wasOpen) {
+    window.scrollTo({ top: contentsReadingScrollTop, behavior: "instant" });
   }
 }
 
@@ -426,7 +435,7 @@ search.addEventListener("input", () => {
 
 contentsToggle.addEventListener("click", () => {
   setContentsCollapsed(contentsToggle.getAttribute("aria-expanded") === "true");
-  if (!desktopReader.matches) setReaderControlsVisible(true, true);
+  if (!desktopReader.matches && !document.body.classList.contains("reader-contents-open")) setReaderControlsVisible(true, true);
 });
 
 function closeContentsDrawer() {

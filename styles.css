@@ -162,25 +162,32 @@ button:active { transform: translateY(1px); }
   body.reading-active .topbar, body.reading-active .site-footer { display: none; }
   html.mobile-reading-active, body.reading-active { background: var(--reader); }
   body.reading-active .shell { width: 100%; padding: 0; }
-  body.reader-contents-open { overflow: hidden; }
+  .reader { position: relative; }
   .reader-header { position: fixed; inset: 0 0 auto; z-index: 20; min-height: 3.5rem; gap: .5rem; padding: max(.5rem, env(safe-area-inset-top)) max(.75rem, env(safe-area-inset-right)) .5rem max(.75rem, env(safe-area-inset-left)); border-bottom: 1px solid var(--line); background: var(--surface-raised); transition: opacity .2s ease, transform .2s ease; }
-  .reader:not(.controls-visible) .reader-header { opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-100%); }
+  .reader:not(.controls-visible) .reader-header { display: none; }
+  .reader.controls-visible .reader-header { animation: reader-controls-in .2s ease both; }
   .reader-header-tools { gap: .5rem; }
   .reader-position { font-size: .78rem; }
   .font-settings { position: static; }
   .font-menu { top: 100%; right: max(.75rem, env(safe-area-inset-right)); min-width: 0; width: min(19rem, calc(100vw - 1.5rem)); max-height: calc(100dvh - 6rem); overflow: auto; }
   .reader-layout { display: block; padding-top: 0; }
-  .reading-page { border: 0; padding: max(1.1rem, env(safe-area-inset-top)) max(1.1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1.1rem, env(safe-area-inset-left)); }
-  .contents, .reader-layout.is-contents-collapsed .contents { display: flex; flex-direction: column; position: fixed; inset: 0 0 auto auto; z-index: 32; width: min(88vw, 22rem); height: 100vh; height: 100dvh; max-height: 100%; margin: 0; padding: max(1.1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom)); border: 0; overflow: hidden; background: var(--surface-raised); visibility: hidden; pointer-events: none; transform: translateX(105%); transition: transform .2s ease; }
-  .reader-layout:not(.is-contents-collapsed) .contents { visibility: visible; pointer-events: auto; transform: translateX(0); }
-  .contents-header { flex: 0 0 auto; margin-bottom: .8rem; }
-  #chapter-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .reading-page { min-height: 100svh; border: 0; padding: calc(env(safe-area-inset-top) + 1.1rem) max(1.1rem, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 1.5rem) max(1.1rem, env(safe-area-inset-left)); }
+  .contents, .reader-layout.is-contents-collapsed .contents { display: none; position: relative; inset: auto; z-index: 32; width: min(88vw, 22rem); min-height: 100svh; height: auto; max-height: none; margin: 0 0 0 auto; padding: max(1.1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom)); border: 0; overflow: visible; background: var(--surface-raised); }
+  .reader-layout:not(.is-contents-collapsed) .contents { display: block; }
+  .contents-header { position: sticky; top: env(safe-area-inset-top); z-index: 1; margin-bottom: .8rem; padding: .25rem 0; background: var(--surface-raised); }
+  #chapter-list { overflow: visible; }
   .contents-header h2 { margin: 0; }
   .contents-close { display: inline-block; }
-  .contents-backdrop { display: block; position: fixed; inset: 0 0 auto; z-index: 30; width: 100%; height: 100vh; height: 100dvh; padding: 0; border: 0; background: rgb(24 24 24 / .4); cursor: pointer; }
+  .contents-backdrop { display: block; position: absolute; inset: 0; z-index: 30; width: 100%; height: 100%; padding: 0; border: 0; background: rgb(24 24 24 / .4); cursor: pointer; }
+  body.reader-contents-open .reading-page, body.reader-contents-open .reader-header { display: none; }
   .contents-toggle { display: inline-block; }
   .chapter-content { font-size: var(--chapter-font-size, 1.1rem); }
   .site-footer { width: calc(100% - 2rem); flex-wrap: wrap; overflow-wrap: anywhere; font-size: .8rem; }
+}
+
+@keyframes reader-controls-in {
+  from { opacity: 0; transform: translateY(-100%); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
