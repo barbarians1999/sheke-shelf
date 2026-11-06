@@ -15,6 +15,7 @@ const contentsToggle = document.querySelector("#toggle-contents");
 const desktopReader = window.matchMedia("(min-width: 721px)");
 const chapterTitle = document.querySelector("#chapter-title");
 const chapterContent = document.querySelector("#chapter-content");
+const annotationNotice = document.querySelector("#annotation-notice");
 const readerPosition = document.querySelector("#reader-position");
 const readingFontKey = "sheke-reading-font:v1";
 const readingSizeKey = "sheke-reading-size:v1";
@@ -292,6 +293,9 @@ function setReaderControlsVisible(visible, autoHide = false) {
 async function showChapter(index) {
   if (!chapters[index]) return;
   const requestId = ++chapterRequestId;
+  const bookId = activeBook?.id;
+  annotationNotice.hidden = !bookAnnotationSources[bookId];
+  annotationNotice.textContent = "本书注释含机器识别内容，尚未全部逐字复核；面板标明核对状态。对应不明的注释不显示。";
   activeIndex = index;
   const chapter = chapters[index];
   chapterTitle.textContent = chapter.title;
@@ -320,38 +324,84 @@ async function showChapter(index) {
 
   if (requestId !== chapterRequestId) return;
   chapterTitle.textContent = content.title || chapter.title;
-  for (const paragraph of content.paragraphs || []) chapterContent.append(renderParagraph(paragraph));
+  const sourceParagraphs = content.paragraphs || [];
+  for (const paragraph of sourceParagraphs) chapterContent.append(renderParagraph(paragraph));
   readerPosition.textContent = `${index + 1} / ${chapters.length}`;
   chapterContent.focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "smooth" });
+  // Show the full chapter immediately; optional notes must not delay reading.
+  loadBookAnnotations(bookId).then(annotationData => {
+    if (requestId !== chapterRequestId || activeBook?.id !== bookId || readerView.hidden) return;
+    if (!annotationData && bookAnnotationSources[bookId]) annotationNotice.textContent = "注释暂时无法加载，正文仍可正常阅读。重新进入本书可重试；注释中的机器识别内容尚未全部复核。";
+    const annotations = prepareChapterAnnotations(bookId, index, content.title || chapter.title, sourceParagraphs, annotationData);
+    for (const [paragraphIndex, annotation] of annotations) {
+      chapterContent.children[paragraphIndex]?.replaceWith(renderParagraph(sourceParagraphs[paragraphIndex], annotation));
+    }
+  });
 }
 
-const circledNotePattern = /[\u2460-\u2473]/gu;
-const circledNotes = Array.from("①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳");
+const bookAnnotationSources = {
+  "western-philosophy-history-upper": "books/western-philosophy-history-upper/annotations.json",
+  "western-philosophy-history-lower": "books/western-philosophy-history-lower/annotations.json"
+};
+const annotationCache = new Map();
+const annotationStatusLabels = {
+  scan_verified: "扫描核对",
+  predicted_orthography_only: "机器识别 · 仅字形预测（未逐字复核）",
+  raw_ocr_unreviewed: "机器识别 · 未经复核"
+};
 
-function extractBettelheimNotes(paragraph) {
-  const occurrences = [...paragraph.matchAll(circledNotePattern)];
-  if (!occurrences.length) return null;
-
-  for (const candidate of occurrences) {
-    if (candidate.index < paragraph.length * 0.55) continue;
-    if (!paragraph.slice(0, candidate.index).includes(candidate[0])) continue;
-    if (!/^\s/u.test(paragraph.slice(candidate.index + candidate[0].length))) continue;
-
-    const tail = paragraph.slice(candidate.index);
-    const noteMarkers = [...tail.matchAll(circledNotePattern)];
-    const order = noteMarkers.map(marker => circledNotes.indexOf(marker[0]));
-    if (order.some((value, index) => value < 0 || (index > 0 && value <= order[index - 1]))) continue;
-    if (noteMarkers.some(marker => !paragraph.slice(0, candidate.index).includes(marker[0]))) continue;
-
-    const annotations = noteMarkers.map((marker, index) => ({
-      marker: marker[0],
-      text: tail.slice(marker.index + marker[0].length, noteMarkers[index + 1]?.index ?? tail.length).trim()
+async function loadBookAnnotations(bookId) {
+  const source = bookAnnotationSources[bookId];
+  if (!source) return null;
+  if (!annotationCache.has(bookId)) {
+    annotationCache.set(bookId, fetch(source, { cache: "no-store" }).then(async response => {
+      if (!response.ok) throw new Error("无法读取注释数据");
+      return response.json();
     }));
-    if (annotations.some(note => !note.text)) continue;
-    return { body: paragraph.slice(0, candidate.index).trimEnd(), annotations };
   }
-  return null;
+  try {
+    return await annotationCache.get(bookId);
+  } catch {
+    // A failed annotation request must leave the complete original text readable.
+    annotationCache.delete(bookId);
+    return null;
+  }
+}
+
+function prepareChapterAnnotations(bookId, chapterIndex, chapterTitle, paragraphs, data) {
+  const references = new Map();
+  if (data?.version !== 2 || data.bookId !== bookId || data.source?.anchorOffsets !== "utf16" || !data.notes || typeof data.notes !== "object") return references;
+  const chapter = data.chapters?.[chapterIndex];
+  if (chapter?.title !== chapterTitle || !Array.isArray(chapter.paragraphs)) return references;
+  const identifiers = new Map(), indices = new Map();
+  for (const record of chapter.paragraphs) {
+    for (const id of [record?.id, ...(Array.isArray(record?.references) ? record.references.map(ref => ref?.id) : [])]) identifiers.set(id, (identifiers.get(id) || 0) + 1);
+    indices.set(record?.index, (indices.get(record?.index) || 0) + 1);
+  }
+  const safeId = id => typeof id === "string" && /^[a-z][a-z0-9-]*$/u.test(id) && identifiers.get(id) === 1;
+  for (const record of chapter.paragraphs) {
+    if (!record || !safeId(record.id) || !Number.isInteger(record.index) || record.index < 0 || indices.get(record.index) !== 1) continue;
+    const paragraph = paragraphs[record.index];
+    if (typeof paragraph !== "string" || paragraph !== record.expectedText || !Array.isArray(record.references) || !record.references.length) continue;
+    const bound = [], positions = new Set(); let cursor = 0;
+    for (const ref of record.references) {
+      const note = ref && Object.hasOwn(data.notes, ref.noteId) ? data.notes[ref.noteId] : null;
+      if (!ref || !safeId(ref.id) || !note || !Object.hasOwn(annotationStatusLabels, note.textStatus) || typeof note.text !== "string" || !note.text.trim()) break;
+      if (!Number.isInteger(ref.start) || !Number.isInteger(ref.end) || ref.start < cursor || ref.end < ref.start || ref.end > paragraph.length) break;
+      if (typeof ref.expectedText !== "string" || paragraph.slice(ref.start, ref.end) !== ref.expectedText || !/^[①-⑳*]$/u.test(ref.marker)) break;
+      if (typeof ref.prefix !== "string" || typeof ref.suffix !== "string" || !(ref.prefix || ref.suffix)) break;
+      if (!paragraph.slice(0, ref.start).endsWith(ref.prefix) || !paragraph.slice(ref.end).startsWith(ref.suffix)) break;
+      const position = `${ref.start}:${ref.end}`;
+      if (positions.has(position)) break;
+      positions.add(position);
+      bound.push({ ...ref, note }); cursor = ref.end;
+    }
+    // Reject the complete paragraph on conflict; repeated printed numbering
+    // alone never establishes a relationship with an annotation.
+    if (bound.length === record.references.length) references.set(record.index, { paragraphId: record.id, notes: bound });
+  }
+  return references;
 }
 
 function parseStandaloneNote(paragraph) {
@@ -360,72 +410,149 @@ function parseStandaloneNote(paragraph) {
   return { marker: match[1].replace(/\s/g, ""), text: match[2].trim() };
 }
 
-function createAnnotationDetails(marker, text, inline = false) {
+function createAnnotationDetails(marker, text, inline = false, id = "", metadata = null) {
   const details = document.createElement("details");
   details.className = inline ? "inline-annotation" : "standalone-annotation";
   const summary = document.createElement("summary");
-  summary.textContent = inline ? marker : `注释 ${marker}`;
-  summary.setAttribute("aria-label", `展开注释 ${marker}`);
-  const box = document.createElement("span");
+  summary.textContent = inline ? (metadata ? metadata.sourceText || marker : marker) : `注释 ${marker}`;
+  const quality = metadata ? `，${annotationStatusLabels[metadata.textStatus]}` : "";
+  summary.setAttribute("aria-label", `展开注释 ${marker}${quality}`);
+  summary.setAttribute("aria-expanded", "false");
+  const box = document.createElement("div");
   box.className = "annotation-box";
+  if (id) {
+    details.id = id;
+    details.dataset.annotationId = id;
+    summary.id = `${id}-reference`;
+    summary.setAttribute("aria-controls", `${id}-popover`);
+    box.id = `${id}-popover`;
+  }
   const label = document.createElement("strong");
   label.className = "annotation-label";
   label.textContent = `注释 ${marker}`;
   const content = document.createElement("span");
+  content.className = "annotation-text";
   content.textContent = text;
-  box.append(label, content);
+  box.append(label);
+  if (metadata) {
+    details.dataset.noteId = metadata.noteId;
+    details.dataset.textStatus = metadata.textStatus;
+    details.dataset.sourceText = metadata.sourceText;
+    const status = document.createElement("span");
+    status.className = "annotation-status";
+    status.textContent = `${annotationStatusLabels[metadata.textStatus]} · 原扫描第 ${metadata.sourcePdfPage} 页`;
+    box.append(status);
+    if (metadata.sourceText !== marker) {
+      const context = document.createElement("p"); context.className = "annotation-anchor-status";
+      context.textContent = metadata.sourceText ? `网页原标号“${metadata.sourceText}”与扫描标号“${marker}”不同，此处保留网页原文。` : "网页此处缺少注号，按扫描核对记录补充注释入口。";
+      box.append(context);
+    }
+  }
+  box.append(content);
+  if (metadata?.rawText) {
+    const raw = document.createElement("details"), heading = document.createElement("summary"), copy = document.createElement("pre");
+    raw.className = "annotation-raw"; heading.textContent = "查看原始 OCR"; copy.textContent = metadata.rawText;
+    raw.append(heading, copy); box.append(raw);
+    raw.addEventListener("toggle", () => { if (details.open) positionInlineAnnotation(details); });
+  }
+  if (inline) {
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "annotation-close";
+    close.textContent = "收起注释";
+    close.setAttribute("aria-label", `关闭注释 ${marker}`);
+    close.addEventListener("click", () => {
+      details.open = false;
+      summary.focus({ preventScroll: true });
+    });
+    box.append(close);
+  }
   details.append(summary, box);
   details.addEventListener("toggle", () => {
+    summary.setAttribute("aria-expanded", String(details.open));
+    summary.setAttribute("aria-label", `${details.open ? "收起" : "展开"}注释 ${marker}${quality}`);
     if (!details.open || !inline) return;
-    const rect = details.getBoundingClientRect();
-    details.classList.toggle("opens-left", rect.left > window.innerWidth * 0.58);
+    chapterContent.querySelectorAll(".inline-annotation[open]").forEach(other => {
+      if (other !== details) other.open = false;
+    });
+    positionInlineAnnotation(details);
   });
   return details;
 }
 
+function positionInlineAnnotation(details) {
+  const rect = details.getBoundingClientRect();
+  const box = details.querySelector(".annotation-box");
+  if (!box) return;
+  const size = box.getBoundingClientRect();
+  const edge = 12;
+  const gap = 8;
+  // On mobile, initial popup overflow can temporarily enlarge innerWidth.
+  // Use the layout viewport so clamping cannot accept that overflow as space.
+  const viewportWidth = document.documentElement.clientWidth;
+  const viewportHeight = document.documentElement.clientHeight;
+  const left = Math.max(edge, Math.min(rect.left, viewportWidth - size.width - edge));
+  let top = rect.bottom + gap;
+  if (top + size.height > viewportHeight - edge) top = rect.top - size.height - gap;
+  top = Math.max(edge, Math.min(top, viewportHeight - size.height - edge));
+  details.style.setProperty("--annotation-left", `${left}px`);
+  details.style.setProperty("--annotation-top", `${top}px`);
+}
+
+window.addEventListener("resize", () => {
+  const openAnnotation = chapterContent.querySelector(".inline-annotation[open]");
+  if (openAnnotation) positionInlineAnnotation(openAnnotation);
+});
+window.addEventListener("scroll", () => {
+  const openAnnotation = chapterContent.querySelector(".inline-annotation[open]");
+  if (openAnnotation) positionInlineAnnotation(openAnnotation);
+}, { passive: true });
+
 function appendParagraphWithAnnotations(paragraph, body, annotations) {
-  const notes = new Map(annotations.map(note => [note.marker, note.text]));
   let cursor = 0;
-  for (const match of body.matchAll(circledNotePattern)) {
-    const note = notes.get(match[0]);
-    if (!note) continue;
-    paragraph.append(document.createTextNode(body.slice(cursor, match.index)));
-    paragraph.append(createAnnotationDetails(match[0], note, true));
-    cursor = match.index + match[0].length;
+  for (const note of annotations) {
+    appendInlineEditorialNotes(paragraph, body.slice(cursor, note.start));
+    paragraph.append(createAnnotationDetails(note.marker, note.note.text, true, note.id, { ...note.note, noteId: note.noteId, sourceText: note.expectedText }));
+    cursor = note.end;
   }
-  paragraph.append(document.createTextNode(body.slice(cursor)));
+  appendInlineEditorialNotes(paragraph, body.slice(cursor));
 }
 
 const inlineEditorialNotePattern = /[（(]([^（）()]{1,300}?(?:注[：:]|(?:译者|编者|原)注)[^（）()]{0,260}?)[）)]/gu;
 
 function appendInlineEditorialNotes(paragraph, text) {
   let cursor = 0;
-  let found = false;
   for (const match of text.matchAll(inlineEditorialNotePattern)) {
-    found = true;
     paragraph.append(document.createTextNode(text.slice(cursor, match.index)));
     const label = match[1].match(/(?:译者注|编者注|原注|注[：:])/u)?.[0] || "注";
-    paragraph.append(createAnnotationDetails(label.replace(/[：:]/u, ""), match[1].trim(), true));
+    const details = createAnnotationDetails(label.replace(/[：:]/u, ""), match[1].trim(), true);
+    details.dataset.sourceText = match[0];
+    paragraph.append(details);
     cursor = match.index + match[0].length;
-  }
-  if (!found) {
-    paragraph.textContent = text;
-    return;
   }
   paragraph.append(document.createTextNode(text.slice(cursor)));
 }
 
-function renderParagraph(value) {
-  const paragraph = document.createElement("p");
+function renderParagraph(value, chapterAnnotations = null) {
+  let paragraph = document.createElement(chapterAnnotations?.notes.length ? "div" : "p");
   const text = typeof value === "string" ? value : String(value?.text || "");
   const standaloneNote = parseStandaloneNote(text);
-  if (standaloneNote) return createAnnotationDetails(standaloneNote.marker, standaloneNote.text);
+  if (standaloneNote) {
+    const details = createAnnotationDetails(standaloneNote.marker, standaloneNote.text);
+    details.dataset.sourceText = text;
+    return details;
+  }
 
-  const annotations = activeBook?.id === "bettelheim-industrial-organization"
-    ? extractBettelheimNotes(text)
-    : null;
-  if (annotations) appendParagraphWithAnnotations(paragraph, annotations.body, annotations.annotations);
-  else appendInlineEditorialNotes(paragraph, text);
+  if (chapterAnnotations?.notes.length) {
+    paragraph.id = chapterAnnotations.paragraphId;
+    paragraph.className = "reading-paragraph";
+    paragraph.setAttribute("role", "paragraph");
+    appendParagraphWithAnnotations(paragraph, text, chapterAnnotations.notes);
+  } else appendInlineEditorialNotes(paragraph, text);
+  if (paragraph.tagName === "P" && paragraph.querySelector(".inline-annotation")) {
+    const container = document.createElement("div"); container.className = "reading-paragraph"; container.setAttribute("role", "paragraph");
+    container.append(...paragraph.childNodes); paragraph = container;
+  }
   return paragraph;
 }
 
@@ -475,7 +602,7 @@ readerView.addEventListener("keydown", event => {
     } else if (!event.shiftKey && (document.activeElement === last || !contentsPanel.contains(document.activeElement))) {
       event.preventDefault(); first.focus();
     }
-  } else if (!readerView.classList.contains("controls-visible")) {
+  } else if (!readerView.classList.contains("controls-visible") && !event.target.closest(".inline-annotation[open]")) {
     event.preventDefault();
     setReaderControlsVisible(true);
     document.querySelector("#back-button").focus({ preventScroll: true });
@@ -505,6 +632,12 @@ document.addEventListener("keydown", event => {
     }
     event.preventDefault();
   }
+});
+
+document.addEventListener("click", event => {
+  chapterContent.querySelectorAll(".inline-annotation[open]").forEach(annotation => {
+    if (!annotation.contains(event.target)) annotation.open = false;
+  });
 });
 
 desktopReader.addEventListener("change", () => {
