@@ -39,7 +39,7 @@ button { color: inherit; }
 .brand-mark::before { background: var(--accent); clip-path: polygon(50% 0, 94% 24%, 100% 65%, 65% 100%, 16% 87%, 0 39%); }
 .brand-mark::after { background: var(--ink); clip-path: polygon(45% 0, 100% 100%, 0 100%); }
 .tools { display: flex; align-items: center; gap: 1rem; width: min(45%, 31rem); }
-.tools input { min-width: 0; width: 100%; min-height: 2.9rem; padding: .55rem .85rem; border: 1px solid #5c6358; border-radius: 0; background: var(--surface-raised); color: var(--ink); font-size: .94rem; }
+.tools input { min-width: 0; width: 100%; min-height: 2.9rem; padding: .55rem .85rem; border: 1px solid #5c6358; border-radius: 0; background: var(--surface-raised); color: var(--ink); font-size: max(1rem, 16px); }
 .tools input::placeholder { color: var(--muted); }
 .tools input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 32%, white); outline-offset: 2px; }
 #shelf-count { min-width: 3rem; padding-left: 1rem; border-left: 1px solid var(--ink); color: var(--ink); font-size: .94rem; font-weight: 600; white-space: nowrap; }
@@ -201,3 +201,4 @@ button:active { transform: translateY(1px); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+

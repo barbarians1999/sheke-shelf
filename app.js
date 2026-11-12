@@ -27,6 +27,7 @@ let books = [];
 let chapters = [];
 let activeIndex = 0;
 let activeBook = null;
+let activeBookTrigger = null;
 let activeCategory = "";
 let chapterRequestId = 0;
 let hideControlsTimer = 0;
@@ -195,19 +196,20 @@ function renderBooks(items) {
     button.className = "read-button";
     button.type = "button";
     button.textContent = "开始阅读";
-    button.addEventListener("click", () => openBook(book));
+    button.addEventListener("click", () => openBook(book, button));
     footer.append(button);
     card.append(createBookCover(book), category, title, author, footer);
     bookList.append(card);
   }
 }
 
-async function openBook(book) {
+async function openBook(book, trigger) {
   const chapterSource = book.chapterManifest || `books/${encodeURIComponent(book.id)}/chapters.json`;
   const response = await fetch(chapterSource, { cache: "no-store" });
   if (!response.ok) return;
   const data = await response.json();
   activeBook = book;
+  activeBookTrigger = trigger;
   chapters = data.chapters || [];
   activeIndex = 0;
   shelfView.hidden = true;
@@ -654,7 +656,18 @@ document.querySelector("#back-button").addEventListener("click", () => {
   shelfView.hidden = false;
   document.querySelector("#shelf-tools").hidden = false;
   history.replaceState(null, "", location.pathname);
-  search.focus();
+  // Return focus to a non-editable control, never summon the mobile keyboard.
+  const returnTarget = activeBookTrigger?.isConnected ? activeBookTrigger : document.querySelector(".brand");
+  returnTarget.focus({ preventScroll: true });
+});
+
+// Do not restore an editing session when returning through browser history.
+// Explicit taps and keyboard navigation can still focus search normally.
+window.addEventListener("pagehide", () => {
+  if (document.activeElement === search) search.blur();
+});
+window.addEventListener("pageshow", event => {
+  if (event.persisted && document.activeElement === search) search.blur();
 });
 document.querySelector("#previous-chapter").addEventListener("click", () => showChapter(activeIndex - 1));
 document.querySelector("#next-chapter").addEventListener("click", () => showChapter(activeIndex + 1));
@@ -662,3 +675,4 @@ document.querySelector("#next-chapter").addEventListener("click", () => showChap
 loadBooks().catch(() => {
   document.querySelector("#empty-state").hidden = false;
 });
+
