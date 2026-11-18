@@ -676,3 +676,6 @@ loadBooks().catch(() => {
   document.querySelector("#empty-state").hidden = false;
 });
 
+
+window.addEventListener("sheke-theme-change", syncReaderSurface);
+syncReaderSurface();

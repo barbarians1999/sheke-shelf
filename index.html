@@ -7,14 +7,18 @@
   <meta name="description" content="社科书架：一份持续整理的社会科学与思想史书目。">
   <title>社科书架</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23eef0ec'/%3E%3Cpath d='M12 7L21 13L23 24L14 31L4 27L1 16Z' fill='%23c52b28'/%3E%3Cpath d='M30 9L40 30H22Z' fill='%2320221f'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261112-search-focus">
+  <script src="theme.js?v=20261118-night"></script>
+  <link rel="stylesheet" href="styles.css?v=20261118-night">
 </head>
 <body>
   <header class="topbar">
+    <div class="brand-heading">
     <a class="brand" href="#shelf" aria-label="社科书架首页">
       <span class="brand-mark" aria-hidden="true">社</span>
       <span>社科书架</span>
     </a>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切换夜间模式" aria-pressed="false">夜间模式</button>
+    </div>
     <div class="tools" id="shelf-tools">
       <label class="visually-hidden" for="book-search">搜索书目</label>
       <input id="book-search" type="search" placeholder="搜索书名或作者" autocomplete="off" enterkeyhint="search">
@@ -40,6 +44,14 @@
           <details id="font-settings" class="font-settings">
             <summary>阅读设置</summary>
             <div class="font-menu" aria-label="阅读设置">
+              <div class="theme-settings" role="group" aria-label="显示模式">
+                <span>显示模式</span>
+                <div class="theme-options">
+                  <button type="button" data-theme-choice="light" aria-pressed="false">日间</button>
+                  <button type="button" data-theme-choice="dark" aria-pressed="false">夜间</button>
+                  <button type="button" data-theme-choice="system" aria-pressed="false">跟随系统</button>
+                </div>
+              </div>
               <div class="font-options" role="group" aria-label="阅读字体">
                 <button type="button" data-reading-font="hanyi" aria-pressed="false">汉仪书仿55w</button>
                 <button type="button" data-reading-font="fangsong" aria-pressed="false">字体管家仿宋</button>
@@ -77,7 +89,7 @@
     </section>
   </main>
   <footer class="site-footer">友情链接：<a href="https://barbarians1999.github.io/zuoren-shelf/" target="_blank" rel="noopener noreferrer">左人书架 GitHub Pages</a></footer>
-  <script src="app.js?v=20261112-search-focus" defer></script>
+  <script src="app.js?v=20261118-night" defer></script>
 </body>
 </html>
 

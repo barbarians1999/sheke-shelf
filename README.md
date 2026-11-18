@@ -17,3 +17,11 @@
 每个入口核对书目、章节标题、完整段落、UTF-16位置、原标号及前后文，并有独立ID。存在重复、重叠、位置或文字冲突时拒绝该段落的关联。注号仅凭编号相同不会互相配对。97处扫描核对记录涉及网页缺号或错号，已有文字仍原样保留；缺号位置仅补充阅读入口，面板说明差异。注释异步加载，失败或迟到不会阻塞正文或覆盖新章节。
 
 `scripts/build_philosophy_annotations.py`可从原整理包重新生成网站数据，校验导入文件及正文SHA-256、所有锚点、唯一ID和重叠情况。用法：`python scripts/build_philosophy_annotations.py /本地路径/western-philosophy-annotations-upper.json`（下册同理）。程序只输出可定位注释，歧义记录只保留数量；注释文字使用纯文本渲染。
+
+## 夜间模式
+
+首页标题旁可切换日间／夜间模式；阅读时在“阅读设置 → 显示模式”选择日间、夜间或跟随系统。首次使用默认跟随系统，手动选择会保存在当前浏览器，并同步同源标签页。存储受限时仍可切换，本次访问有效。夜间模式覆盖书架、目录、正文、注释和设置；不改变书籍内容、字体或阅读位置。
+
+`theme.js` 在样式表之前初始化主题，避免保存的夜间模式刷新时先显示亮色。手机浏览器主题色和安全区跟随阅读背景。
+
+验证：`node tests/night-mode.test.cjs` 使用 Playwright 检查 Chromium、WebKit 的桌面与手机视口。可用 `PLAYWRIGHT_MODULE` 指定本地 Playwright 模块、`SHEKE_TEST_ENGINE=chromium` 只测 Chromium、`CHROMIUM_CHANNEL=msedge` 使用已安装 Edge。`SHEKE_SCREENSHOT_DIR` 指定仓库外截图位置。没有安装对应浏览器时，测试会明确失败，不代表已通过。
